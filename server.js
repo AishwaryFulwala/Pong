@@ -1,25 +1,17 @@
 const http = require('http').createServer()
 const io = require('socket.io')(http)
 
-// const io = require('socket.io')(http, {
-//     cors: {
-//       origin: '*',
-//       methods: ['GET', 'POST']
-//     }
-//   });
-
 http.listen(3000, () => {
     console.log('server')
 })
 
 let readyCount = 0
+let player1    
 
 io.on('connection', (socket) => {
     let room
 
-    console.log('socket ', socket.id)
-
-    socket.on('ready', () => {
+    socket.on('ready', (playerName) => {
         room = 'room' + Math.floor(readyCount / 2)
         socket.join(room)
 
@@ -27,9 +19,11 @@ io.on('connection', (socket) => {
 
         readyCount++
 
-        if(readyCount % 2 === 0) {
-            io.in(room).emit('startGame', socket.id)
-        }
+        if(readyCount % 2 !== 0) {
+            player1 = playerName
+        }else if(readyCount % 2 === 0) {
+            io.in(room).emit('startGame', socket.id, player1, playerName)
+        }  
     })
 
     socket.on('paddleMove', (paddleData) => {
