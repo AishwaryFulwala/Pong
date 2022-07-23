@@ -1,25 +1,29 @@
 // Canvas Related 
 const canvas = document.createElement('canvas');
 const context = canvas.getContext('2d');
+
+const player = prompt("What is your name?");
+let player1, player2;
+
 const socket = io('http://localhost:3000', { transports : ['websocket'] })
 let isReferee = false
 let paddleIndex = 0;
 
-let width = 500;
-let height = 700;
+let width = 700;
+let height = 900;
 
 // Paddle
 let paddleHeight = 10;
-let paddleWidth = 50;
+let paddleWidth = 90;
 let paddleDiff = 25;
-let paddleX = [ 225, 225 ];
+let paddleX = [ 100, 100 ];
 let trajectoryX = [ 0, 0 ];
 let playerMoved = false;
 
 // Ball
 let ballX = 250;
-let ballY = 350;
-let ballRadius = 5;
+let ballY = 450;
+let ballRadius = 7;
 let ballDirection = 1;
 
 // Speed
@@ -41,23 +45,23 @@ function createCanvas() {
 //Wait for Opponents
 function renderIntro() {
   // Canvas Background
-  context.fillStyle = 'black';
+  context.fillStyle = '#081E29';
   context.fillRect(0, 0, width, height);
 
   // Intro Text
-  context.fillStyle = 'white';
+  context.fillStyle = '#FFFFFF';
   context.font = "32px Courier New";
-  context.fillText("Waiting for opponent...", 20, (canvas.height / 2) - 30);
+  context.fillText("Waiting for opponent...", 20, (canvas.height / 2));
 }
 
 // Render Everything on Canvas
 function renderCanvas() {
   // Canvas Background
-  context.fillStyle = 'black';
+  context.fillStyle = '#081E29';
   context.fillRect(0, 0, width, height);
 
   // Paddle Color
-  context.fillStyle = 'white';
+  context.fillStyle = '#588888';
 
   // Bottom Paddle
   context.fillRect(paddleX[0], height - 20, paddleWidth, paddleHeight);
@@ -68,21 +72,27 @@ function renderCanvas() {
   // Dashed Center Line
   context.beginPath();
   context.setLineDash([4]);
-  context.moveTo(0, 350);
-  context.lineTo(500, 350);
+  context.moveTo(0, 450);
+  context.lineTo(700, 450);
   context.strokeStyle = 'grey';
   context.stroke();
 
   // Ball
   context.beginPath();
   context.arc(ballX, ballY, ballRadius, 2 * Math.PI, false);
-  context.fillStyle = 'white';
+  context.fillStyle = '#dda97a';
   context.fill();
 
   // Score
-  context.font = "32px Courier New";
-  context.fillText(score[0], 20, (canvas.height / 2) + 50);
+  context.font = "30px Courier New";
+  context.fillStyle = '#FFFFFF';
+  context.fillText(score[0], 20, (canvas.height / 2) + 75);
   context.fillText(score[1], 20, (canvas.height / 2) - 30);
+
+  // Name
+  context.font = "20px Courier New";
+  context.fillText(player1, 20, (canvas.height / 2) + 40);
+  context.fillText(player2, 20, (canvas.height / 2) - 65);
 }
 
 // Reset Ball to Center
@@ -178,7 +188,7 @@ function animate() {
 function loadGame() {
   createCanvas();
   renderIntro();
-  socket.emit('ready')
+  socket.emit('ready', player)
 }
 
 function startGame() {
@@ -210,10 +220,13 @@ socket.on('connect', () => {
   console.log('Connect ', socket.id)
 })
 
-socket.on('startGame', (refereeId) => {
-  console.log('Referee ', refereeId)
-
+socket.on('startGame', (refereeId, play1, play2) => {
+  console.log('Referee ', refereeId, play1, play2)
+  
   isReferee = socket.id === refereeId
+  player1 = play1
+  player2 = play2
+
   startGame()
 })
 
